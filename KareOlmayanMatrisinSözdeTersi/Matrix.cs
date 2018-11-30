@@ -8,53 +8,81 @@ namespace KareOlmayanMatrisinSözdeTersi
 {
     class Matrix
     {
-        public Matrix() {
 
-        }
-
-        public Matrix(double[,]arr) {
-            matrixValues = arr;
-        }
         private double[,] matrixValues;
         public double[,] Values { set { matrixValues = value; } get { return matrixValues; } }
-        
-        public double[,] MultiplyMatrix(Matrix rightMatrix)
+
+        public Matrix()
         {
-            if (matrixValues.GetLength(1) != rightMatrix.Values.GetLength(0))
+
+        }
+
+        public Matrix(double[,] arr)
+        {
+            matrixValues = arr;
+        }
+
+
+        public double[,] MultiplyMatrix(double[,] rightMatrix)
+        {
+            if (matrixValues.GetLength(0) != rightMatrix.GetLength(1))
             {
                 Console.WriteLine("\n Number of columns in First Matrix should be equal to Number of rows in Second Matrix.");
                 Console.WriteLine("\n Please re-enter correct dimensions.");
                 return null;
             }
 
-            //sütun satır olarak işlem yapıyoruz 
-            double[,] resultMatrixValues = new double[matrixValues.GetLength(1), rightMatrix.Values.GetLength(0)];
+            double[,] resultMatrixValues = new double[matrixValues.GetLength(0), rightMatrix.GetLength(1)];
 
-            for (int i = 0; i < resultMatrixValues.GetLength(1); i++)
+            for (int i = 0; i < resultMatrixValues.GetLength(0); i++)
             {
-                for (int j = 0; j < resultMatrixValues.GetLength(0); j++)
+                for (int j = 0; j < resultMatrixValues.GetLength(1); j++)
                 {
-                    resultMatrixValues[j, i] = 0;
-                    for (int k = 0; k < matrixValues.GetLength(0); k++)
+                    resultMatrixValues[i, j] = 0;
+                    for (int k = 0; k < matrixValues.GetLength(1); k++)
                     {
-                        resultMatrixValues[j, i] += matrixValues[k, i] * rightMatrix.Values[j, k];
+                        resultMatrixValues[i, j] += matrixValues[i, k] * rightMatrix[k, j];
                     }
                 }
             }
 
             return resultMatrixValues;
         }
+        public static double[,] MultiplyMatrix(double[,] leftMatrix, double[,] rightMatrix)
+        {
+            if (leftMatrix.GetLength(0) != rightMatrix.GetLength(1))
+            {
+                Console.WriteLine("\n Number of columns in First Matrix should be equal to Number of rows in Second Matrix.");
+                Console.WriteLine("\n Please re-enter correct dimensions.");
+                return null;
+            }
 
+            double[,] resultMatrixValues = new double[leftMatrix.GetLength(0), rightMatrix.GetLength(1)];
+
+            for (int i = 0; i < resultMatrixValues.GetLength(0); i++)
+            {
+                for (int j = 0; j < resultMatrixValues.GetLength(1); j++)
+                {
+                    resultMatrixValues[i, j] = 0;
+                    for (int k = 0; k < leftMatrix.GetLength(1); k++)
+                    {
+                        resultMatrixValues[i, j] += leftMatrix[i, k] * rightMatrix[k, j];
+                    }
+                }
+            }
+
+            return resultMatrixValues;
+        }
         public static double[,] Transpose(double[,] matrix)
         {
-            int rowCount = matrix.GetLength(1);
-            int colCount = matrix.GetLength(0);
+            int rowCount = matrix.GetLength(0);
+            int colCount = matrix.GetLength(1);
 
-            double[,] result = new double[rowCount, colCount];
+            double[,] result = new double[colCount, rowCount];
 
-            for (int i = 0; i < colCount; i++)
+            for (int i = 0; i < rowCount; i++)
             {
-                for (int j = 0; j < rowCount; j++)
+                for (int j = 0; j < colCount; j++)
                 {
                     result[j, i] = matrix[i, j];
                 }
@@ -63,13 +91,51 @@ namespace KareOlmayanMatrisinSözdeTersi
             return result;
         }
 
+        public static double[,] calculatePseudoInverse(double[,] matrix)
+        {
+            int matrixRowCount = matrix.GetLength(0);
+            int matrixColCount = matrix.GetLength(1);
+
+
+            if (matrixRowCount == matrixColCount)
+            {
+                return matrix;
+            }
+            int rank = rankOfMatrix(matrix);
+            Console.WriteLine($"Rank : {rank}");
+
+            if (rank == matrixColCount )
+            {
+                if (determinant(Matrix.MultiplyMatrix(Matrix.Transpose(matrix), matrix), matrixColCount) == 0 ||
+                    determinant(Matrix.MultiplyMatrix(matrix, Matrix.Transpose(matrix)), matrixRowCount) == 0)
+                {
+                    Console.WriteLine("Determinant sıfır. Matrisin tersi hesaplanamaz!");
+                    return null;
+                }
+
+                return Matrix.MultiplyMatrix(cofactor(Matrix.MultiplyMatrix(Matrix.Transpose(matrix), matrix)), Matrix.Transpose(matrix));
+            }
+            else if(rank == matrixRowCount)
+            {
+                if (determinant(Matrix.MultiplyMatrix(Matrix.Transpose(matrix), matrix), matrixColCount) == 0 ||
+    determinant(Matrix.MultiplyMatrix(matrix, Matrix.Transpose(matrix)), matrixRowCount) == 0)
+                {
+                    Console.WriteLine("Determinant sıfır. Matrisin tersi hesaplanamaz!");
+                    return null;
+                }
+
+                return Matrix.MultiplyMatrix(Transpose(matrix) , cofactor(Matrix.MultiplyMatrix(matrix, Transpose(matrix))));
+            }
+            return null;
+        }
+
         public static void ShowArray(double[,] mat)
         {
-            for (int row = 0; row < mat.GetLength(1); row++)
+            for (int row = 0; row < mat.GetLength(0); row++)
             {
-                for (int col = 0; col < mat.GetLength(0); col++)
+                for (int col = 0; col < mat.GetLength(1); col++)
                 {
-                    Console.Write($"{ mat[col, row] } ");
+                    Console.Write($"{string.Format("{0:0.0} ", mat[row, col])}");
                 }
                 Console.WriteLine();
             }
@@ -77,161 +143,229 @@ namespace KareOlmayanMatrisinSözdeTersi
             Console.WriteLine();
         }
 
-        private static double[,] MatrixCreate(int rows, int cols)
+        /*For calculating Determinant of the Matrix . this function is recursive*/
+        public static double determinant(double[,] matrix, int size)
         {
-            // allocates/creates a matrix initialized to all 0.0. assume rows and cols > 0
-            // do error checking here
-            double[,] result = new double[rows, cols];
-            return result;
-        }
-
-        // --------------------------------------------------------------------------------------------------------------
-        private static double[,] MatrixDecompose(double[,] matrix, out int[] perm, out int toggle)
-        {
-            // Doolittle LUP decomposition with partial pivoting.
-            // rerturns: result is L (with 1s on diagonal) and U; perm holds row permutations; toggle is +1 or -1 (even or odd)
-            int rows = matrix.GetLength(0);
-            int cols = matrix.GetLength(1);
-
-            //Check if matrix is square
-            if (rows != cols)
-                throw new Exception("Attempt to MatrixDecompose a non-square mattrix");
-
-            double[,] result = MatrixDuplicate(matrix); // make a copy of the input matrix
-
-            perm = new int[rows]; // set up row permutation result
-            for (int i = 0; i < rows; ++i) { perm[i] = i; } // i are rows counter
-
-            toggle = 1; // toggle tracks row swaps. +1 -> even, -1 -> odd. used by MatrixDeterminant
-
-            for (int j = 0; j < rows - 1; ++j) // each column, j is counter for coulmns
+            double s = 1, det = 0;
+            double[,] m_minor;
+            m_minor = new double[size,size];
+            int i, j, m, n, c;
+            if (size==1)
             {
-                double colMax = Math.Abs(result[j, j]); // find largest value in col j
-                int pRow = j;
-                for (int i = j + 1; i < rows; ++i)
-                {
-                    if (result[i, j] > colMax)
-                    {
-                        colMax = result[i, j];
-                        pRow = i;
-                    }
-                }
-
-                if (pRow != j) // if largest value not on pivot, swap rows
-                {
-                    double[] rowPtr = new double[result.GetLength(1)];
-
-                    //in order to preserve value of j new variable k for counter is declared
-                    //rowPtr[] is a 1D array that contains all the elements on a single row of the matrix
-                    //there has to be a loop over the columns to transfer the values
-                    //from the 2D array to the 1D rowPtr array.
-                    //----tranfer 2D array to 1D array BEGIN
-
-                    for (int k = 0; k < result.GetLength(1); k++)
-                    {
-                        rowPtr[k] = result[pRow, k];
-                    }
-
-                    for (int k = 0; k < result.GetLength(1); k++)
-                    {
-                        result[pRow, k] = result[j, k];
-                    }
-
-                    for (int k = 0; k < result.GetLength(1); k++)
-                    {
-                        result[j, k] = rowPtr[k];
-                    }
-
-                    //----tranfer 2D array to 1D array END
-
-                    int tmp = perm[pRow]; // and swap perm info
-                    perm[pRow] = perm[j];
-                    perm[j] = tmp;
-
-                    toggle = -toggle; // adjust the row-swap toggle
-                }
-
-                if (Math.Abs(result[j, j]) < 1.0E-20) // if diagonal after swap is zero . . .
-                {
-                    Console.WriteLine($"consider throw value is: { result[j, j] }");
-                    return null; // consider a throw
-                }
-
-                for (int i = j + 1; i < rows; ++i)
-                {
-                    result[i, j] /= result[j, j];
-                    for (int k = j + 1; k < rows; ++k)
-                    {
-                        result[i, k] -= result[i, j] * result[j, k];
-                    }
-                }
-            } // main j column loop
-
-            return result;
-        } // MatrixDecompose
-
-        // --------------------------------------------------------------------------------------------------------------
-        public static double MatrixDeterminant(double[,] matrix)
-        {
-            int[] perm;
-            int toggle;
-            double[,] lum = MatrixDecompose(matrix, out perm, out toggle);
-            if (lum == null)
-                throw new Exception("Unable to compute MatrixDeterminant");
-            double result = toggle;
-            for (int i = 0; i < lum.GetLength(0); ++i)
-                result *= lum[i, i];
-
-            return result;
-        }
-
-        // --------------------------------------------------------------------------------------------------------------
-        private static double[,] MatrixDuplicate(double[,] matrix)
-        {
-            // allocates/creates a duplicate of a matrix. assumes matrix is not null.
-            double[,] result = MatrixCreate(matrix.GetLength(0), matrix.GetLength(1));
-            for (int i = 0; i < matrix.GetLength(0); ++i) // copy the values
-                for (int j = 0; j < matrix.GetLength(1); ++j)
-                    result[i, j] = matrix[i, j];
-            return result;
-        }
-
-        // --------------------------------------------------------------------------------------------------------------
-        private static double[,] ExtractLower(double[,] matrix)
-        {
-            // lower part of a Doolittle decomposition (1.0s on diagonal, 0.0s in upper)
-            int rows = matrix.GetLength(0); int cols = matrix.GetLength(1);
-            double[,] result = MatrixCreate(rows, cols);
-            for (int i = 0; i < rows; ++i)
+                return (matrix[0,0]);
+            }
+            else
             {
-                for (int j = 0; j < cols; ++j)
+                det=0;
+                for (c=0;c<size;c++)
                 {
-                    if (i == j)
-                        result[i, j] = 1.0f;
-                    else if (i > j)
-                        result[i, j] = matrix[i, j];
+                    m=0;
+                    n=0;
+                    for (i=0;i<size;i++)
+                    {
+                        for (j=0;j<size;j++)
+                        {
+                            m_minor[i,j]=0;
+                            if (i != 0 && j != c)
+                            {
+                               m_minor[m,n]=matrix[i,j];
+                               if (n<(size-2))
+                                  n++;
+                               else
+                               {
+                                   n=0;
+                                   m++;
+                               }
+                            }
+                        }
+                    }
+                    det = det + s* (matrix[0,c] * determinant(m_minor, size-1));
+                    s=-1 * s;
                 }
             }
-            return result;
+             return (det);
+        }
+ 
+            /*calculate cofactor of matrix*/
+         public static double[,] cofactor(double[,] matrix)
+          {
+              int size = matrix.GetLength(0);
+              double[,] m_cofactor,matrix_cofactor;
+              m_cofactor = new double[size, size];
+              matrix_cofactor = new double[size, size];
+              int p, q, m, n, i, j;
+              for (q=0;q<size;q++)
+              {
+                  for (p=0;p<size;p++)
+                  {
+                      m=0;
+                      n=0;
+                      for (i=0;i<size;i++)
+                      {
+                          for (j=0;j<size;j++)
+                          {
+                              if (i != q && j != p)
+                               {
+                                 m_cofactor[m,n]=matrix[i,j];
+                                 if (n<(size-2))
+                                    n++;
+                                 else
+                                 {
+                                     n=0;
+                                     m++;
+                                 }
+                              }
+                          }
+                      }
+                      matrix_cofactor[q,p]=Math.Pow(-1, q + p) * determinant(m_cofactor, size-1);
+
+                  }
+              }
+              return transpose(matrix, matrix_cofactor, size);
+         }
+
+           /*Finding transpose of cofactor of matrix*/ 
+          public static double[,] transpose(double[,] matrix, double[,] matrix_cofactor, int size)
+           {
+               int i, j;
+               double d;
+               double[,] m_transpose = new double[size, size];
+               double[,] m_inverse = new double[size, size];    
+            
+                for (i=0;i<size;i++)
+                {
+                    for (j=0;j<size;j++)
+                    {
+                        m_transpose[i,j]=matrix_cofactor[j,i];
+                    }
+                }
+                d=determinant(matrix, size);
+                for (i=0;i<size;i++)
+                {
+                    for (j=0;j<size;j++)
+                    {
+                        m_inverse[i,j]=m_transpose[i,j] / d;
+                    }
+                }
+            return m_inverse;
+                Console.Write("\n\n\t* * * * * * * * * * * * * * * * * * * * * * * \n\n\tThe inverse of matrix is : \n\n");
+
+                 ShowArray(m_inverse);
+                //for (i=0;i<size;i++)
+                //{
+                //    for (j=0;j<size;j++)
+                //    {
+                //       Console.Write("\t%3.2f", m_inverse[i,j]);
+                //    }
+                //   Console.Write("\n\n");
+                //}
+               Console.Write("\n\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+               Console.Write("\n* * * * * * * * * * * * * * * * * THE END * * * * * * * * * * * * * * * * * * *");
+               Console.Write("\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+           }
+
+        public static int rankOfMatrix(double[,] mat)
+        {
+            int R = mat.GetLength(0);
+            int C = mat.GetLength(1);
+            int rank = C;
+
+            for (int row = 0; row < rank; row++)
+            {
+
+                // Before we visit current row  
+                // 'row', we make sure that  
+                // mat[row][0],....mat[row][row-1] 
+                // are 0. 
+
+                // Diagonal element is not zero 
+                if (mat[row, row] != 0)
+                {
+                    for (int col = 0; col < R; col++)
+                    {
+                        if (col != row)
+                        {
+                            // This makes all entries  
+                            // of current column  
+                            // as 0 except entry  
+                            // 'mat[row][row]' 
+                            double mult =
+                                        mat[col, row] /
+                                        mat[row, row];
+
+                            for (int i = 0; i < rank; i++)
+
+                                mat[col, i] -= mult
+                                         * mat[row, i];
+                        }
+                    }
+                }
+
+                // Diagonal element is already zero.  
+                // Two cases arise: 
+                // 1) If there is a row below it  
+                // with non-zero entry, then swap  
+                // this row with that row and process  
+                // that row 
+                // 2) If all elements in current  
+                // column below mat[r][row] are 0,  
+                // then remvoe this column by  
+                // swapping it with last column and 
+                // reducing number of columns by 1. 
+                else
+                {
+                    bool reduce = true;
+
+                    // Find the non-zero element  
+                    // in current column  
+                    for (int i = row + 1; i < R; i++)
+                    {
+                        // Swap the row with non-zero  
+                        // element with this row. 
+                        if (mat[i, row] != 0)
+                        {
+                            swap(mat, row, i, rank);
+                            reduce = false;
+                            break;
+                        }
+                    }
+
+                    // If we did not find any row with  
+                    // non-zero element in current  
+                    // columnm, then all values in  
+                    // this column are 0. 
+                    if (reduce)
+                    {
+                        // Reduce number of columns 
+                        rank--;
+
+                        // Copy the last column here 
+                        for (int i = 0; i < R; i++)
+                            mat[i, row] = mat[i, rank];
+                    }
+
+                    // Process this row again 
+                    row--;
+                }
+
+                // Uncomment these lines to see  
+                // intermediate results display(mat, R, C); 
+                // printf("\n"); 
+            }
+
+            return rank;
         }
 
-        // --------------------------------------------------------------------------------------------------------------
-        private static double[,] ExtractUpper(double[,] matrix)
+       public static void swap(double[,] mat,
+          int row1, int row2, int col)
         {
-            // upper part of a Doolittle decomposition (0.0s in the strictly lower part)
-            int rows = matrix.GetLength(0); int cols = matrix.GetLength(1);
-            double[,] result = MatrixCreate(rows, cols);
-            for (int i = 0; i < rows; ++i)
+            for (int i = 0; i < col; i++)
             {
-                for (int j = 0; j < cols; ++j)
-                {
-                    if (i <= j)
-                        result[i, j] = matrix[i, j];
-                }
+                double temp = mat[row1, i];
+                mat[row1, i] = mat[row2, i];
+                mat[row2, i] = temp;
             }
-            return result;
         }
     }
-
 }
 

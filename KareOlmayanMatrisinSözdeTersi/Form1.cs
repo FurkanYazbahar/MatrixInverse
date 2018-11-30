@@ -57,9 +57,9 @@ namespace KareOlmayanMatrisinSözdeTersi
             for (i = 0; i < n; i++)
             {
                 det *= a[i, i];
-                Console.WriteLine(det);
+              //  Console.WriteLine(det);
             }
-            Console.WriteLine(det);
+           // Console.WriteLine(det);
             return det;
         }
 
@@ -70,25 +70,69 @@ namespace KareOlmayanMatrisinSözdeTersi
             Matrix r = new Matrix();
 
 
-            double[,] first = new double[,] { { -1, -1, 0, 0, 1, 1 }, { 0, 1, -1, 1, -1, 0 }, { 1, 0, 1, -1, 0, -1 }, { 2, -1, 3, -3, 1, -2 }, { -1, -1, 0, 0, 1, 1 }, { -1, -1, 0, 0, 1, 1 } };
-            double[,] second = new double[,] { { 2, 4 }, { 3, 6 }};
+            double[,] asil = new double[,] { 
+                    {-1 , 0 ,  1,  2 },
+                    {-1 , 1 ,  0, -1}, 
+                    { 0 ,-1 ,  1,  3 }, 
+                    { 0 , 1 , -1, -3 }, 
+                    { 1 ,-1 ,  0,  1 },
+                    { 1 , 0 , -1, -2 }
+            };
+
+            double[,] first = new double[,] { {-1 ,-3 , 3 , 8 },
+                                              { 7 , 3 ,-9 , 1 },
+                                              { 1 , 3 , 1 ,-1 },
+                                              { 2 ,-3 , 3 ,-3 },
+                                              {-1 ,-3 , 1 , 3 }, };
+
+            double[,] first1 = new double[,] { {2 , 5  },
+                                              { 3 , 9  },
+                                              { 8 , 4  },
+                                              { 3 , 5  } };
+
+            double[,] second = new double[,] { { 2, 4 },
+                                               { 3, 6 } };
             double[,] result;
 
-            Matrix f = new Matrix(first);
+           // Matrix f = new Matrix(first1);
             Matrix s = new Matrix(second);
 
-            Matrix.ShowArray(f.Values);
+            Matrix.ShowArray(first1);
 
-            Console.WriteLine($"{DET(f.Values)}");
-            //s.Values = Matrix.Transpose(first);
-            //Matrix.ShowArray(s.Values);
-            
+
+
+            // Console.WriteLine($"\n{DET(s.Values)}");
+             Console.WriteLine("----transpoze-------");
+            s.Values = Matrix.Transpose(first1);
+            Matrix.ShowArray(s.Values);
+
             //Matrix.ShowArray(first);
             //Matrix.ShowArray(second);
+             Console.WriteLine("----result-------");
+            double[,] res1 = Matrix.MultiplyMatrix(first1,s.Values);
+            Matrix.ShowArray(res1);
+            double d = Matrix.determinant(res1,res1.GetLength(0));
+            Console.WriteLine($"Determinant : {d}");
+            // f.MultiplyMatrix(s);
+            double[,] res = Matrix.calculatePseudoInverse(first1);
+            if (res == null)
+                Console.WriteLine("null");
+            else
+                Matrix.ShowArray(res);
+            /*
+            double[,] res = f.MultiplyMatrix(s);
+            Matrix.ShowArray(res);
 
-            //f.MultiplyMatrix(s);
-            //Matrix.ShowArray(f.MultiplyMatrix(s));
-            
+            double d = Matrix.determinant(res, res.GetLength(0));
+
+            Console.WriteLine($"Determinant : {d}");
+            Console.WriteLine($"{d}");
+
+            Matrix.cofactor(res, res.GetLength(0));
+            */
+            // Console.WriteLine($"{DET(f.MultiplyMatrix(s))}");
+            // Console.WriteLine($"{Matrix.MatrixDeterminant(f.MultiplyMatrix(s))}");
+
             InitializeComponent();
         }
 
@@ -241,6 +285,11 @@ namespace KareOlmayanMatrisinSözdeTersi
         private void textBoxRowCount_KeyPress(object sender, KeyPressEventArgs e)
         {
             e.Handled = textBoxMatrixEdgeControl(e.KeyChar);
+        }
+
+        private void textBoxRowCount_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
